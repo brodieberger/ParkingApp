@@ -1,3 +1,5 @@
+#This is an old implementation when we were going with a sensor idea. Keeping this in here anyway
+
 import mysql.connector
 
 mydb = mysql.connector.connect(
