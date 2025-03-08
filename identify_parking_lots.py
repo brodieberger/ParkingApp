@@ -3,7 +3,7 @@ import json
 import numpy as np
 
 # Define parking spot coordinates. You can use microsoft paint to get these. Should be (X1, Y1, X2, Y2).
-# Must be hardcoded for each image. 
+# Must be hardcoded for each image.
 PARKING_SPOTS = {
     "Spot 1": (30, 70, 130, 300),
     "Spot 2": (140, 70, 240, 300),
