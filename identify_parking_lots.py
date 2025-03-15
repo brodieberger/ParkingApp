@@ -3,30 +3,30 @@ import json
 import numpy as np
 import mysql.connector
 import dbconnect
+import random
 from mysql.connector import Error
 
 
 # Define parking spot coordinates. You can use microsoft paint to get these. Should be (X1, Y1, X2, Y2).
 # Must be hardcoded for each image.
 PARKING_SPOTS = {
-    "Spot 1": (30, 70, 130, 300),
-    "Spot 2": (140, 70, 240, 300),
-    "Spot 3": (260, 70, 360, 300),
-    "Spot 4": (370, 70, 460, 300),
-    "Spot 5": (480, 70, 580, 300),
-    "Spot 6": (30, 320, 130, 530),
-    "Spot 7": (140, 320, 240, 530),
-    "Spot 8": (260, 320, 360, 530),
-    "Spot 9": (370, 320, 460, 530),
-    "Spot 10": (480, 320, 580, 530),
+    "Spot 1": (35, 70, 130, 263),
+    "Spot 2": (155, 70, 240, 263),
+    "Spot 3": (263, 70, 355, 263),
+    "Spot 4": (373, 70, 460, 263),
+    "Spot 5": (490, 70, 580, 263),
+    "Spot 6": (35, 350, 130, 530),
+    "Spot 7": (150, 350, 240, 530),
+    "Spot 8": (263, 350, 355, 530),
+    "Spot 9": (373, 350, 460, 530),
+    "Spot 10": (483, 350, 580, 530),
 }
 
-# Load image. Ideally should be generated or added from somewhere.
-image_path = 'images/parking_lot.jpg'
+# Load random image
+image_path = "images/parking_lot_" + str(random.randint(1, 8)) + ".jpg"
 image = cv2.imread(image_path)
 
-# Make image work better for image recognition. This was all copy pasted from stack overflow so not 100% sure how it all works.
-# Currently it doesn't work 100% of the time. Probably only 8/10 times from what I tested.
+# Blur and grayscale image to make it better for detection.
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 blurred = cv2.GaussianBlur(gray, (5, 5), 0)
 edges = cv2.Canny(blurred, 50, 150)
@@ -45,7 +45,7 @@ occupied_spots = []
 for contour in contours:
     area = cv2.contourArea(contour)
     # Ignore small objects (noise) and very large objects (not cars)
-    if 1000 < area < 10000:  
+    if 1700 < area < 10000:  
         for spot, coords in PARKING_SPOTS.items():
             if is_car_inside_spot(contour, coords):
                 occupied_spots.append(spot)
@@ -71,7 +71,7 @@ try:
         
         # Update parking lot status
         for spot, status in parking_status.items():
-            spot_id = int(spot.split()[1])  # Assuming spot names are like "Spot 1", "Spot 2", etc.
+            spot_id = int(spot.split()[1])
             is_occupied = 1 if status == "Occupied" else 0
             mycursor.execute("UPDATE ParkingLots SET IsOccupied = %s WHERE Spotid = %s", (is_occupied, spot_id))
         
