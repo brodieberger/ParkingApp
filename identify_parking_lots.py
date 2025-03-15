@@ -1,6 +1,10 @@
 import cv2
 import json
 import numpy as np
+import mysql.connector
+import dbconnect
+from mysql.connector import Error
+
 
 # Define parking spot coordinates. You can use microsoft paint to get these. Should be (X1, Y1, X2, Y2).
 # Must be hardcoded for each image.
@@ -17,7 +21,7 @@ PARKING_SPOTS = {
     "Spot 10": (480, 320, 580, 530),
 }
 
-# Load image
+# Load image. Ideally should be generated or added from somewhere.
 image_path = 'images/parking_lot.jpg'
 image = cv2.imread(image_path)
 
@@ -52,6 +56,33 @@ parking_status = {spot: "Occupied" if spot in occupied_spots else "Vacant" for s
 # Save results to JSON file. TODO this should go into a database. Currently not at Kean so I dont feel like setting up the firewall
 with open('output/parking_status.json', 'w') as f:
     json.dump(parking_status, f, indent=4)
+
+# Connect to and Update database
+try:
+    
+    mydb = mysql.connector.connect(
+        host=dbconnect.host,
+        user=dbconnect.user,
+        password=dbconnect.password,
+        database=dbconnect.database
+    )
+    if mydb.is_connected():
+        mycursor = mydb.cursor(dictionary=True)
+        
+        # Update parking lot status
+        for spot, status in parking_status.items():
+            spot_id = int(spot.split()[1])  # Assuming spot names are like "Spot 1", "Spot 2", etc.
+            is_occupied = 1 if status == "Occupied" else 0
+            mycursor.execute("UPDATE ParkingLots SET IsOccupied = %s WHERE Spotid = %s", (is_occupied, spot_id))
+        
+        mydb.commit()
+        mycursor.close()
+        print("Spots Updated!")
+except Error as e:
+    print(f"Error: {e}")
+finally:
+    if mydb.is_connected():
+        mydb.close()
 
 # Draw results on image. Would be cool for the showcase but we don't really need this cause of the whole privacy issue.
 for spot, (sx1, sy1, sx2, sy2) in PARKING_SPOTS.items():
