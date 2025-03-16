@@ -1,5 +1,6 @@
 #Project Stuff
 dbconnect.py
+dbconfig.php
 __pycache__
 app.yaml
 

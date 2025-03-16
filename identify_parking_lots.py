@@ -6,7 +6,6 @@ import dbconnect
 import random
 from mysql.connector import Error
 
-
 # Define parking spot coordinates. You can use microsoft paint to get these. Should be (X1, Y1, X2, Y2).
 # Must be hardcoded for each image.
 PARKING_SPOTS = {
