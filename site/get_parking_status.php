@@ -1,6 +1,10 @@
 <?php
 header("Content-Type: application/json");
-include 'dbconfig.php';
+
+$host = "imc.kean.edu";
+$user = "bergebro";
+$password = "1181534";
+$database = "2025S_bergebro";
 
 $conn = new mysqli($host, $user, $password, $database);
 
@@ -8,20 +12,27 @@ if ($conn->connect_error) {
     die(json_encode(["error" => "fail to connect to database: " . $conn->connect_error]));
 }
 
-// read ParkingLots list status
-$sql = "SELECT Spotid, IsOccupied FROM ParkingLots";
-$result = $conn->query($sql);
+// Get campus parameter from request
+$campus = isset($_GET['campus']) ? $_GET['campus'] : 'Main Campus (North)';
+
+// Modify SQL query to include campus filter
+$sql = "SELECT SpotID, SpotLocation, IsOccupied FROM ParkingLots WHERE SpotLocation = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("s", $campus);
+$stmt->execute();
+$result = $stmt->get_result();
 
 $parking_spots = [];
 while ($row = $result->fetch_assoc()) {
     $parking_spots[] = [
-        "id" => $row["Spotid"],
+        "id" => $row["SpotID"],
+        "location" => $row["SpotLocation"],
         "status" => $row["IsOccupied"] == 1 ? "occupied" : "available"
     ];
 }
 
-// echo status of parking lots
 echo json_encode(["parking_spots" => $parking_spots]);
 
+$stmt->close();
 $conn->close();
 ?>
