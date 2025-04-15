@@ -1,11 +1,11 @@
 {
-    "Spot 1": "Vacant",
-    "Spot 2": "Vacant",
-    "Spot 3": "Occupied",
+    "Spot 1": "Occupied",
+    "Spot 2": "Occupied",
+    "Spot 3": "Vacant",
     "Spot 4": "Vacant",
-    "Spot 5": "Occupied",
+    "Spot 5": "Vacant",
     "Spot 6": "Occupied",
-    "Spot 7": "Occupied",
+    "Spot 7": "Vacant",
     "Spot 8": "Vacant",
     "Spot 9": "Vacant",
     "Spot 10": "Vacant"
