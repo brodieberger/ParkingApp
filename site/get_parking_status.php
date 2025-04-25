@@ -1,10 +1,7 @@
 <?php
 header("Content-Type: application/json");
 
-$host = "imc.kean.edu";
-$user = "bergebro";
-$password = "1181534";
-$database = "2025S_bergebro";
+include 'dbconfig.php';
 
 $conn = new mysqli($host, $user, $password, $database);
 

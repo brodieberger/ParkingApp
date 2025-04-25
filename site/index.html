@@ -213,6 +213,35 @@
             font-size: 20px;
         }
 
+        .spot .countdown-timer {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            color: #333;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .spot .cancel-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .spot .cancel-btn:hover {
+            background: #cc0000;
+        }
+
         .available {
             background-color: #4CAF50;
             color: white;
@@ -222,6 +251,12 @@
         .occupied {
             background-color: #FF5733;
             color: white;
+        }
+
+        .pending {
+            background-color: #FFC107;
+            color: black;
+            cursor: default;
         }
 
         .electric {
@@ -295,11 +330,6 @@
             color: white;
         }
 
-        #loginModal .modal-content,
-        #registerModal .modal-content {
-            max-width: 400px;
-        }
-
         .form-group {
             margin-bottom: 15px;
         }
@@ -310,30 +340,12 @@
             color: #333;
         }
 
-        .form-group input,
-        .form-group select {
+        .form-group input {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
             box-sizing: border-box;
-        }
-
-        .form-links {
-            margin-top: 15px;
-            text-align: center;
-        }
-
-        .form-links a {
-            color: #4a90e2;
-            text-decoration: none;
-            margin: 0 10px;
-        }
-
-        .countdown {
-            margin-top: 10px;
-            font-size: 24px;
-            color: #FF5733;
         }
     </style>
 </head>
@@ -381,9 +393,6 @@
                     <div class="user-menu-content" id="userMenuContent">
                         <a href="#" id="bookingsBtn">My Bookings</a>
                         <a href="#" id="accountBtn">Account Settings</a>
-                        <a href="#" id="termsBtn">Terms of Service</a>
-                        <a href="#" id="privacyBtn">Privacy Policy</a>
-                        <a href="#" id="disputeBtn">Refunds & Disputes</a>
                         <a href="#" id="logoutBtn" onclick="logout()">Logout</a>
                     </div>
                 </div>
@@ -411,10 +420,6 @@
                     <button type="submit" class="confirm">Login</button>
                 </div>
             </form>
-            <div class="form-links">
-                <a href="#" onclick="showForgotPassword()">Forgot Password?</a>
-                <a href="#" onclick="showRegister()">Register</a>
-            </div>
         </div>
     </div>
 
@@ -427,45 +432,48 @@
                     <label for="registerEmail">Email</label>
                     <input type="email" id="registerEmail" required>
                 </div>
+            
                 <div class="form-group">
                     <label for="registerPassword">Password</label>
                     <input type="password" id="registerPassword" required>
                 </div>
-		
+            
                 <div class="form-group">
-		<!-- User Type -->
                     <label for="userType">User Type</label>
                     <select id="userType" required>
                         <option value="student">Student</option>
                         <option value="faculty">Faculty</option>
                         <option value="guest">Guest</option>
-		    </select>
+                    </select>
+                </div>
+            
                 <div class="form-group">
                     <label for="vehicleType">Vehicle Type</label>
-			<select id="vehicleType" required>
-  			<option value="normal">Normal</option>
-  			<option value="electric">Electric</option>
+                    <select id="vehicleType" required>
+                        <option value="normal">Normal</option>
+                        <option value="electric">Electric</option>
+                        <option value="motorcycle">Motorcycle</option>
                     </select>
-		</div>
-<label style="display: flex; align-items: center; gap: 6px; white-space: nowrap; width: fit-content;margin-left: 0;justify-content: flex-start;">
-  <input type="checkbox" id="isDisabled" onchange="toggleUpload()">
-  I require accessible parking
-</label>
-
-
-<div id="proofUpload" style="display:none; margin-top: 10px;">
-  <label for="proofFile">Upload Proof</label>
-  <input type="file" id="proofFile" accept=".jpg,.png,.pdf" />
-</div>
-
                 </div>
+            
+                <label style="display: flex; align-items: center; gap: 6px; white-space: nowrap; width: fit-content;margin-left: 0;justify-content: flex-start;">
+                    <input type="checkbox" id="isDisabled" onchange="toggleUpload()">
+                    I require accessible parking
+                  </label>
+            
+                <div class="form-group" id="proofUpload" style="display:none;">
+                    <label for="proofFile">Upload Proof</label>
+                    <input type="file" id="proofFile" accept=".jpg,.png,.pdf" />
+                </div>
+            
                 <div class="modal-buttons">
                     <button type="button" class="cancel" onclick="closeModal('registerModal')">Cancel</button>
                     <button type="submit" class="confirm">Register</button>
                 </div>
-            </form>
-        </div>
-    </div>
+
+                          </form>
+                      </div>
+                  </div>
 
     <!-- Booking Confirmation Modal -->
     <div class="modal" id="bookingModal">
@@ -473,8 +481,6 @@
             <h2>Confirm Booking</h2>
             <p>Would you like to book this parking spot?</p>
             <p>Spot: <span id="bookingSpotId"></span></p>
-            <p>Type: <span id="bookingSpotType"></span></p>
-            <div class="countdown" id="countdown"></div>
             <div class="modal-buttons">
                 <button class="cancel" onclick="closeModal('bookingModal')">Cancel</button>
                 <button class="confirm" onclick="confirmBooking()">Confirm</button>
@@ -486,8 +492,180 @@
         let currentCampus = 'main-north';
         let isLoggedIn = false;
         let currentUser = null;
-        let bookingTimer = null;
-        let countdownInterval = null;
+        let pendingBookings = new Map(); // Store booking data: { spotId: { timer, timeLeft, element } }
+
+        function toggleUpload() {
+            const isDisabled = document.getElementById("isDisabled").checked;
+            document.getElementById("proofUpload").style.display = isDisabled ? "block" : "none";
+        }
+        function startSpotCountdown(spotId) {
+            if (pendingBookings.has(spotId)) return;
+
+            let timeLeft = 600; // 10 minutes
+            const spotElement = document.querySelector(`.spot[data-id="${spotId}"]`);
+            if (!spotElement) return;
+
+            const countdownElement = document.createElement('div');
+            countdownElement.className = 'countdown-timer';
+
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'cancel-btn';
+            cancelButton.textContent = 'Cancel';
+            cancelButton.onclick = (e) => {
+                e.stopPropagation();
+                cancelBooking(spotId);
+            };
+
+            spotElement.appendChild(countdownElement);
+            spotElement.appendChild(cancelButton);
+
+            //
+            pendingBookings.set(spotId, {
+                timer: null,
+                timeLeft,
+                element: spotElement
+            });
+
+            const timer = setInterval(() => {
+                const booking = pendingBookings.get(spotId);
+                if (!booking) return;
+
+                booking.timeLeft--;
+                const minutes = Math.floor(booking.timeLeft / 60);
+                const seconds = booking.timeLeft % 60;
+
+                const spotEl = document.querySelector(`.spot[data-id="${spotId}"]`);
+                const countdownEl = spotEl?.querySelector('.countdown-timer');
+                if (countdownEl) {
+                    countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }
+
+                if (booking.timeLeft <= 0) {
+                    clearInterval(booking.timer);
+                    pendingBookings.delete(spotId);
+                    loadParkingData();
+                }
+            }, 1000);
+
+            // 
+            pendingBookings.get(spotId).timer = timer;
+
+            spotElement.classList.remove('available');
+            spotElement.classList.add('pending');
+        }
+
+        function cancelBooking(spotId) {
+            const booking = pendingBookings.get(spotId);
+            if (booking) {
+                clearInterval(booking.timer);
+                pendingBookings.delete(spotId);
+                loadParkingData();
+            }
+        }
+
+        function confirmBooking() {
+            if (!isLoggedIn) {
+                closeModal('bookingModal');
+                showModal('loginModal');
+                return;
+            }
+
+            const spotId = document.getElementById('bookingSpotId').textContent;
+            
+            // Check if user already has a pending booking
+            if (pendingBookings.size > 0) {
+                alert('You already have a pending booking. Please cancel it first.');
+                closeModal('bookingModal');
+                return;
+            }
+
+            closeModal('bookingModal');
+            startSpotCountdown(spotId);
+        }
+        function renderCampusSpots(parkingSpots) {
+    let parkingHTML = "";
+    parkingSpots.forEach(spot => {
+        const isPending = pendingBookings.has(spot.id);
+        const statusClass = isPending ? 'pending' : (spot.status === "available" ? "available" : "occupied");
+        const typeClass = spot.type === "electric" ? "electric" :
+                          spot.type === "disabled" ? "disabled" : "";
+        const typeIcon = spot.type === "electric" ? "⚡" :
+                         spot.type === "disabled" ? "♿" : "";
+        
+         let countdownText = '';
+        if (isPending) {
+            const booking = pendingBookings.get(spot.id);
+            const min = Math.floor(booking.timeLeft / 60);
+            const sec = booking.timeLeft % 60;
+            // countdownText = `
+                // <div class="countdown-timer">${min}:${sec.toString().padStart(2, '0')}</div>
+                // <button class="cancel-btn" onclick="event.stopPropagation(); cancelBooking(${spot.id})">Cancel</button>`;
+        }
+        parkingHTML += `
+            <div class="spot ${statusClass} ${typeClass}" 
+                data-id="${spot.id}"
+                data-type="${spot.type}"
+                onclick="${spot.status === 'available' && !isPending ? 
+                    `showBookingModal(${spot.id}, '${spot.type}')` : ''}">
+                <span class="type-icon">${typeIcon}</span>
+                SPOT ${spot.id}
+
+            </div>`;
+    });
+
+    // 
+    document.getElementById("parking-lot").innerHTML = parkingHTML;
+
+    // 
+    pendingBookings.forEach((booking, spotId) => {
+        const spotElement = document.querySelector(`.spot[data-id="${spotId}"]`);
+        if (spotElement) {
+            const countdownElement = spotElement.querySelector('.countdown-timer');
+            if (countdownElement) {
+                const minutes = Math.floor(booking.timeLeft / 60);
+                const seconds = booking.timeLeft % 60;
+                countdownElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+    });
+}
+
+function loadParkingData() {
+    const campuses = ['main-north', 'main-central', 'main-south', 'liberty', 'east'];
+    const statusMessage = document.getElementById('status-message');
+    statusMessage.textContent = 'Loading parking data...';
+
+    campuses.forEach(campus => {
+        fetch(`get_parking_status.php?campus=${campus}`)
+            .then(res => res.ok ? res.json() : Promise.reject())
+            .then(data => {
+                const total = data.parking_spots.length;
+                const available = data.parking_spots.filter(s => 
+                    s.status === "available" && !pendingBookings.has(s.id)
+                ).length;
+
+                // 
+                const btn = document.querySelector(`.campus-btn[data-campus="${campus}"]`);
+                if (btn) {
+                    btn.querySelector('.total-spots').textContent = `${available}/${total} spots`;
+                }
+
+                // 
+                if (campus === currentCampus) {
+                    renderCampusSpots(data.parking_spots);
+                    statusMessage.textContent = `Showing ${total} parking spots for ${currentCampus.replace('-', ' ').toUpperCase()}`;
+                }
+            })
+            .catch(() => {
+                const btn = document.querySelector(`.campus-btn[data-campus="${campus}"]`);
+                if (btn) btn.querySelector('.total-spots').textContent = `0/0 spots`;
+                if (campus === currentCampus) {
+                    document.getElementById("parking-lot").innerHTML = '<p>Error loading parking data</p>';
+                    statusMessage.textContent = 'Error: Failed to load parking data';
+                }
+            });
+    });
+}
 
         // User Menu Toggle
         document.getElementById('userMenuBtn').addEventListener('click', function() {
@@ -501,31 +679,12 @@
             }
         });
 
-        // Modal Functions
         function showModal(modalId) {
             document.getElementById(modalId).classList.add('active');
         }
 
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-        }
-
-        function showLogin() {
-            closeModal('registerModal');
-            showModal('loginModal');
-        }
-
-        function showRegister() {
-            closeModal('loginModal');
-            showModal('registerModal');
-        }
-
-        function showForgotPassword() {
-            alert('Password reset link will be sent to your email');
         }
 
         function logout() {
@@ -533,19 +692,12 @@
             currentUser = null;
             updateAuthDisplay();
         }
-	  function toggleUpload() {
-    		const isDisabled = document.getElementById("isDisabled").checked;
- 		   document.getElementById("proofUpload").style.display = isDisabled ? "block" : "none";
-	}
 
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             isLoggedIn = true;
             currentUser = {
-                email: document.getElementById('loginEmail').value,
-                type: 'student',
-		vehicleType:document.getElementById('vehicleType').value,
-		isDisabled: document.getElementById('isDisabled').checked
+                email: document.getElementById('loginEmail').value
             };
             closeModal('loginModal');
             updateAuthDisplay();
@@ -555,10 +707,7 @@
             e.preventDefault();
             isLoggedIn = true;
             currentUser = {
-                email: document.getElementById('registerEmail').value,
-                type: document.getElementById('userType').value,
-		vehicleType:document.getElementById('vehicleType').value,
-		isDisabled: document.getElementById('isDisabled').checked
+                email: document.getElementById('registerEmail').value
             };
             closeModal('registerModal');
             updateAuthDisplay();
@@ -579,122 +728,9 @@
             }
         }
 
-        function startBookingCountdown() {
-            let timeLeft = 600; // 10 minutes in seconds
-            const countdownElement = document.getElementById('countdown');
-            
-            countdownInterval = setInterval(() => {
-                timeLeft--;
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-                countdownElement.textContent = `Time remaining: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(countdownInterval);
-                    closeModal('bookingModal');
-                    alert('Booking time expired');
-                }
-            }, 1000);
-        }
-
-        function confirmBooking() {
-            if (!isLoggedIn) {
-                closeModal('bookingModal');
-                showModal('loginModal');
-                return;
-            }
-            
-            const spotId = document.getElementById('bookingSpotId').textContent;
-            alert(`Booking confirmed for spot ${spotId}`);
-            closeModal('bookingModal');
-            loadParkingData();
-        }
-
- function loadParkingData() {
-
-    const statusMessage = document.getElementById('status-message');
-    statusMessage.textContent = 'Loading parking data...';
-
-    fetch(`get_parking_status.php?campus=${currentCampus}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            let parkingHTML = "";
-            let availableCount = 0;
-
-            if (data.parking_spots && data.parking_spots.length > 0) {
-                data.parking_spots.forEach(spot => {
-                    const statusClass = spot.status === "available" ? "available" : "occupied";
-                    const typeClass = spot.type === "electric" ? "electric"
-                                      : spot.type === "disabled" ? "disabled" : "";
-                    const typeIcon = spot.type === "electric" ? "⚡"
-                                     : spot.type === "disabled" ? "♿" : "";
-
-                    if (spot.status === "available") availableCount++;
-
-                    parkingHTML += `
-                        <div class="spot ${statusClass} ${typeClass}"
-                             data-id="${spot.id}" 
-                             data-type="${spot.type}" 
-                             data-status="${spot.status}">
-                            <span class="type-icon">${typeIcon}</span>
-                            SPOT ${spot.id}
-                        </div>`;
-                });
-
-                // renew campus btn text
-                document.querySelectorAll('.campus-btn').forEach(btn => {
-                    if (btn.dataset.campus === currentCampus) {
-                        btn.querySelector('.total-spots').textContent = `${availableCount}/${data.parking_spots.length} Spots`;
-                    }
-                });
-
-                statusMessage.textContent = `Showing ${data.parking_spots.length} parking spots for ${currentCampus.replace('-', ' ').toUpperCase()}`;
-            } else {
-                parkingHTML = '<p>No parking spots available for this campus</p>';
-                statusMessage.textContent = 'No data available for this campus';
-            }
-
-            // refresh
-            document.getElementById("parking-lot").innerHTML = parkingHTML;
-
-            // bundle click event
-            document.querySelectorAll('.spot').forEach(spotEl => {
-                spotEl.addEventListener('click', function () {
-                    const type = this.dataset.type;
-                    const status = this.dataset.status;
-
-                    if (status !== 'available') return;
-
-                    if (
-                        (type === 'electric' && currentUser?.vehicleType !== 'electric') ||
-                        (type === 'disabled' && !currentUser?.isDisabled)
-                    ) {
-                        alert("You are not authorized to book this type of spot.");
-                        return;
-                    }
-
-                    showBookingModal(this.dataset.id, type);
-                });
-            });
-        })
-        .catch(error => {
-            console.error("Failed to load data:", error);
-            document.getElementById("parking-lot").innerHTML = '<p>Error loading parking data</p>';
-            statusMessage.textContent = 'Error: Failed to load parking data';
-        });
-}
-
-
         function showBookingModal(spotId, spotType) {
             document.getElementById('bookingSpotId').textContent = spotId;
-            document.getElementById('bookingSpotType').textContent = spotType;
             showModal('bookingModal');
-            startBookingCountdown();
         }
 
         document.querySelectorAll('.campus-btn').forEach(button => {
@@ -702,15 +738,13 @@
                 document.querySelectorAll('.campus-btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
-                
                 this.classList.add('active');
                 currentCampus = this.dataset.campus;
                 loadParkingData();
-		
             });
         });
 
-        // Initial setup
+        // Initialize
         updateAuthDisplay();
         loadParkingData();
         setInterval(loadParkingData, 5000);
